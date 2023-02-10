@@ -1,0 +1,31 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+# Load the data from the Google Sheet into a pandas DataFrame
+data = pd.read_csv("https://docs.google.com/spreadsheets/d/1MdErotSQunkqyDCjLva3ILExp-UL2RVhNWzybBCqjdI/export?format=csv")
+
+# Initialize a list to store the addresses
+addresses = []
+
+# Iterate over the colleges in the DataFrame
+for i, row in data.iterrows():
+    # Send an HTTP request to the website
+    response = requests.get(row["Website"])
+    soup = BeautifulSoup(response.text, "html.parser")
+    
+    # Try to find the address on the page
+    address = soup.find("div", {"class": "address"})
+    
+    # If the address is found, add it to the list of addresses
+    if address:
+        addresses.append(address.text)
+    # If the address is not found, add a blank symbol
+    else:
+        addresses.append("-")
+
+# Add the addresses to the DataFrame as a new column
+data["Address"] = addresses
+
+# Write the DataFrame to an Excel file
+data.to_excel("colleges_data.xlsx", index=False)
